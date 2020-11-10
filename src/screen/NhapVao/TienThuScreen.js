@@ -1,17 +1,22 @@
 import * as React from 'react';
-import {useState} from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, Image, Button, Pressable, Alert } from 'react-native';
 import { TextInput } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { FlatGrid } from 'react-native-super-grid';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment'
+import 'moment/locale/vi'
+moment.locale('vi')
 
 function TienThuScreen(navigation) {
-    const [value, onChangeText] = React.useState('Nhập Ghi Chú ')
-    const [value1, onChangeText1] = React.useState('Nhập số tiền ')
-    const [date, setDate] = useState(new Date(1598051730000));
+    const [value, onChangeText] = React.useState('')
+    const [value1, onChangeText1] = React.useState('')
+    const [value2, setCategory] = React.useState('')
+    const [selectItem, setColorItem] = React.useState(0)
+    const [date, setDate] = useState(new Date());
     const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(false);    
+    const [show, setShow] = useState(false);
     const onChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShow(Platform.OS === 'ios');
@@ -35,16 +40,24 @@ function TienThuScreen(navigation) {
         { name: 'Gia đình cho', code: '#34495e', icon: require('../../image/giadinhcho.png') },
         { name: 'Đầu tư', code: '#16a085', icon: require('../../image/dautu.png') },
         { name: 'Lặt vặt', code: '#27ae60', icon: require('../../image/latvat.png') },
-        
+
 
 
 
     ]);
-    const alertNhapKhoangThuChi = () =>
+    const alertNhapKhoangThuChi = () => {
+        const tienthu = {
+            ghichu: value,
+            sotien: value1,
+            danhmuc: value2,
+            ngay: moment(date).format('DD/MM/YYYY')
+        }
         Alert.alert(
             "Thông Tin",
-            "Ghi chu: " + value + "\n" +
-            "Tien Thu: " + value1 + "\n",
+            "Ghi chú: " + tienthu.ghichu + "\n" +
+            "Tiền Thu: " + tienthu.sotien + "\n" +
+            "Danh Mục: " + tienthu.danhmuc + "\n" +
+            "Ngày: " + tienthu.ngay,
             [
                 {
                     text: "Cancel",
@@ -55,29 +68,38 @@ function TienThuScreen(navigation) {
             ],
             { cancelable: false }
         );
+    }
+
+    const setDanhMuc = (data) => {
+        setCategory(data.item.name);
+        setColorItem(data.index);
+    }
+
 
     return (
 
 
         <View style={styles.contrainer}>
             <View>
-                
+
                 <Button onPress={showDatepicker} title="Ngày hiện tại" />
             </View>
             {show && (
                 <DateTimePicker
                     testID="dateTimePicker"
+                    locale={'vi-VN'}
                     value={date}
                     mode={mode}
+                    format="DD-MM-YYYY"
                     is24Hour={true}
                     display="default"
                     onChange={onChange}
                 />
             )}
-                <TextInput value = {date}
-                />
+            <TextInput value={date}
+            />
 
-                
+
 
             <View style={styles.ghichu}>
 
@@ -86,6 +108,7 @@ function TienThuScreen(navigation) {
                 </Text>
                 <TextInput
                     style={{ height: 40, width: 320, borderColor: 'gray', borderWidth: 1, marginLeft: 15, marginTop: 5 }}
+                    placeholder='Nhập ghi chú'
                     onChangeText={onChangeText}
                     value={value}
                 />
@@ -98,6 +121,8 @@ function TienThuScreen(navigation) {
                 </Text>
                 <TextInput
                     style={{ height: 40, width: 320, borderColor: 'gray', borderWidth: 1, marginLeft: 10, marginTop: 5 }}
+                    keyboardType='numeric'
+                    placeholder="Nhập tiền thu "
                     onChangeText={onChangeText1}
                     value={value1}
                 />
@@ -112,17 +137,16 @@ function TienThuScreen(navigation) {
                 // staticDimension={300}
                 // fixed
                 spacing={10}
-                renderItem={({ item }) => {
-
+                renderItem={({ item, index }) => {
                     return (
-                        <View style={[styles.itemContainer]}>
+                        <TouchableOpacity style={[styles.itemContainer, { backgroundColor: selectItem === index ? 'skyblue' : "transparent" }]} onPress={() => setDanhMuc({ item, index })}>
                             <Image
                                 style={styles.tinyLogo}
                                 source={item.icon}
                             />
                             <Text style={styles.itemName}>{item.name}</Text>
 
-                        </View>
+                        </TouchableOpacity>
                     )
                 }}
             />
